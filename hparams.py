@@ -4,7 +4,7 @@ import os
 def get_image_list(data_root, split):
 	filelist = []
 
-	with open('filelists/{}.txt'.format(split)) as f:
+	with open('dataset/{}.txt'.format(split)) as f:
 		for line in f:
 			line = line.strip()
 			if ' ' in line: line = line.split()[0]
