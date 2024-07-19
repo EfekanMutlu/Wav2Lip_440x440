@@ -258,7 +258,11 @@ def train(device, model, train_data_loader, test_data_loader, optimizer,
             loss.backward()
             optimizer.step()
 
-            wandb.log({"train_sync_loss": sync_loss.item(), "train_l1_loss": l1loss.item(), "train_total_loss": loss.item(), "global_step": global_step})
+            sync_loss_value = sync_loss.item() if hasattr(sync_loss, 'item') else sync_loss
+            l1loss_value = l1loss.item() if hasattr(l1loss, 'item') else l1loss
+            total_loss_value = loss.item() if hasattr(loss, 'item') else loss
+
+            wandb.log({"train_sync_loss": sync_loss_value, "train_l1_loss": l1loss_value, "train_total_loss": total_loss_value, "global_step": global_step})
 
             if global_step % checkpoint_interval == 0:
                 save_sample_images(x, g, gt, global_step, checkpoint_dir)
@@ -290,7 +294,7 @@ def train(device, model, train_data_loader, test_data_loader, optimizer,
         
 
 def eval_model(test_data_loader, global_step, device, model, checkpoint_dir):
-    eval_steps = 700
+    eval_steps = 50 #700
     print('Evaluating for {} steps'.format(eval_steps))
     sync_losses, recon_losses = [], []
     step = 0
@@ -420,7 +424,7 @@ if __name__ == "__main__":
 
     test_data_loader = data_utils.DataLoader(
         test_dataset, batch_size=hparams.batch_size,
-        num_workers=4)
+        num_workers=hparams.num_workers)
 
     device = torch.device("cuda" if use_cuda else "cpu")
 
