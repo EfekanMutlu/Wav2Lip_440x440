@@ -1,6 +1,6 @@
 from os.path import dirname, join, basename, isfile
 from tqdm import tqdm
-
+import wandb
 from models import SyncNet_color as SyncNet
 from models import Wav2Lip as Wav2Lip
 import audio
@@ -126,7 +126,7 @@ class Dataset(object):
             window_fnames = self.get_window(img_name)
             wrong_window_fnames = self.get_window(wrong_img_name)
             if window_fnames is None or wrong_window_fnames is None:
-              print("windows frames none")
+              #print("windows frames none")
               continue
 
             window = self.read_window(window_fnames)
@@ -230,7 +230,8 @@ def train(device, model, train_data_loader, test_data_loader, optimizer,
 
     global global_step, global_epoch
     resumed_step = global_step
- 
+    wandb.init(project="Wav2Lip Training")
+
     while global_epoch < nepochs:
         print('Starting Epoch: {}'.format(global_epoch))
         running_sync_loss, running_l1_loss = 0., 0.
@@ -257,6 +258,8 @@ def train(device, model, train_data_loader, test_data_loader, optimizer,
             loss = hparams.syncnet_wt * sync_loss + (1 - hparams.syncnet_wt) * l1loss
             loss.backward()
             optimizer.step()
+
+            wandb.log({"train_sync_loss": sync_loss.item(), "train_l1_loss": l1loss.item(), "train_total_loss": loss.item(), "global_step": global_step})
 
             if global_step % checkpoint_interval == 0:
                 save_sample_images(x, g, gt, global_step, checkpoint_dir)
@@ -317,6 +320,8 @@ def eval_model(test_data_loader, global_step, device, model, checkpoint_dir):
 
                 print('L1: {}, Sync loss: {}'.format(averaged_recon_loss, averaged_sync_loss))
 
+                wandb.log({"eval_sync_loss": averaged_sync_loss, "eval_l1_loss": averaged_recon_loss, "global_step": global_step})
+
                 return averaged_sync_loss
 
 def save_checkpoint(model, optimizer, step, checkpoint_dir, epoch):
@@ -367,6 +372,7 @@ if __name__ == "__main__":
     checkpoint_dir = args.checkpoint_dir
 
     # Dataset and Dataloader setup
+    wandb.login()
     train_dataset = Dataset('train')
     test_dataset = Dataset('val')
 
