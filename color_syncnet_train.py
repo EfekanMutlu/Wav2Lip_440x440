@@ -67,13 +67,15 @@ class Dataset(object):
         return len(self.all_videos)
 
     def __getitem__(self, idx):
+        max_attempts = 10000
         while 1:
             idx = random.randint(0, len(self.all_videos) - 1)
             vidname = self.all_videos[idx]
 
             img_names = list(glob(join(vidname, '*.jpg')))
             if len(img_names) <= 3 * syncnet_T:
-                continue
+              print("syncht hatası")
+              continue
             img_name = random.choice(img_names)
             wrong_img_name = random.choice(img_names)
             while wrong_img_name == img_name:
@@ -88,7 +90,8 @@ class Dataset(object):
 
             window_fnames = self.get_window(chosen)
             if window_fnames is None:
-                continue
+              print("window frame none")
+              continue
 
             window = []
             all_read = True
@@ -101,6 +104,7 @@ class Dataset(object):
                     img = cv2.resize(img, (hparams.img_size, hparams.img_size))
                 except Exception as e:
                     all_read = False
+                    print("break")
                     break
 
                 window.append(img)
@@ -113,7 +117,8 @@ class Dataset(object):
 
                 orig_mel = audio.melspectrogram(wav).T
             except Exception as e:
-                continue
+              print("audio wav problem")
+              continue
 
             mel = self.crop_audio_window(orig_mel.copy(), img_name)
 
@@ -259,7 +264,7 @@ if __name__ == "__main__":
 
     test_data_loader = data_utils.DataLoader(
         test_dataset, batch_size=hparams.syncnet_batch_size,
-        num_workers=8)
+        num_workers=2)
 
     device = torch.device("cuda" if use_cuda else "cpu")
 

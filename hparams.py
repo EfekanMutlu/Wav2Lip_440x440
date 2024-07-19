@@ -4,7 +4,7 @@ import os
 def get_image_list(data_root, split):
 	filelist = []
 
-	with open('dataset/{}.txt'.format(split)) as f:
+	with open('filelists/{}.txt'.format(split)) as f:
 		for line in f:
 			line = line.strip()
 			if ' ' in line: line = line.split()[0]
@@ -78,8 +78,8 @@ hparams = HParams(
 	
 	batch_size=16,
 	initial_learning_rate=1e-4,
-	nepochs=200000000000000000,  ### ctrl + c, stop whenever eval loss is consistently greater than train loss for ~10 epochs
-	num_workers=16,
+	nepochs=20,  ### ctrl + c, stop whenever eval loss is consistently greater than train loss for ~10 epochs
+	num_workers=2,
 	checkpoint_interval=3000,
 	eval_interval=3000,
     save_optimizer_state=True,
