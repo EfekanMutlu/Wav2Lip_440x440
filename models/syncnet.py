@@ -9,9 +9,9 @@ class SyncNet_color(nn.Module):
         super(SyncNet_color, self).__init__()
 
         self.face_encoder = nn.Sequential(
-        Conv2d(15, 16, kernel_size=(7, 7), stride=1, padding=3),  # Input: 440x440 -> Output: 440x440
+        Conv2d(15, 32, kernel_size=(7, 7), stride=1, padding=3),  # Input: 440x440 -> Output: 440x440
 
-        Conv2d(16, 32, kernel_size=5, stride=(1, 2), padding=1),  # Output: 438x220
+        Conv2d(32, 32, kernel_size=5, stride=(1, 2), padding=1),  # Output: 438x220
         Conv2d(32,32, kernel_size=3, stride=1, padding=1, residual=True),  # Output: 438x220
         Conv2d(32, 32, kernel_size=3, stride=1, padding=1, residual=True),  # Output: 438x220
 
