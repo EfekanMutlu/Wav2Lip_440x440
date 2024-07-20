@@ -9,48 +9,55 @@ class SyncNet_color(nn.Module):
         super(SyncNet_color, self).__init__()
 
         self.face_encoder = nn.Sequential(
-            Conv2d(15, 32, kernel_size=(7, 7), stride=1, padding=3),
+        Conv2d(15, 16, kernel_size=(7, 7), stride=1, padding=3),  # Input: 440x440 -> Output: 440x440
 
-            Conv2d(32, 64, kernel_size=5, stride=(1, 2), padding=1),
-            Conv2d(64, 64, kernel_size=3, stride=1, padding=1, residual=True),
-            Conv2d(64, 64, kernel_size=3, stride=1, padding=1, residual=True),
+        Conv2d(16, 32, kernel_size=5, stride=(1, 2), padding=1),  # Output: 438x220
+        Conv2d(32,32, kernel_size=3, stride=1, padding=1, residual=True),  # Output: 438x220
+        Conv2d(32, 32, kernel_size=3, stride=1, padding=1, residual=True),  # Output: 438x220
 
-            Conv2d(64, 128, kernel_size=3, stride=2, padding=1),
-            Conv2d(128, 128, kernel_size=3, stride=1, padding=1, residual=True),
-            Conv2d(128, 128, kernel_size=3, stride=1, padding=1, residual=True),
-            Conv2d(128, 128, kernel_size=3, stride=1, padding=1, residual=True),
+        Conv2d(32, 64, kernel_size=3, stride=2, padding=1),  # Output: 219x110
+        Conv2d(64, 64, kernel_size=3, stride=1, padding=1, residual=True),  # Output: 219x110
+        Conv2d(64, 64, kernel_size=3, stride=1, padding=1, residual=True),  # Output: 219x110
+        Conv2d(64, 64, kernel_size=3, stride=1, padding=1, residual=True),  # Output: 219x110
 
-            Conv2d(128, 256, kernel_size=3, stride=2, padding=1),
-            Conv2d(256, 256, kernel_size=3, stride=1, padding=1, residual=True),
-            Conv2d(256, 256, kernel_size=3, stride=1, padding=1, residual=True),
+        Conv2d(64, 128, kernel_size=3, stride=2, padding=1),  # Output: 110x55
+        Conv2d(128, 128, kernel_size=3, stride=1, padding=1, residual=True),  # Output: 110x55
+        Conv2d(128, 128, kernel_size=3, stride=1, padding=1, residual=True),  # Output: 110x55
 
-            Conv2d(256, 512, kernel_size=3, stride=2, padding=1),
-            Conv2d(512, 512, kernel_size=3, stride=1, padding=1, residual=True),
-            Conv2d(512, 512, kernel_size=3, stride=1, padding=1, residual=True),
+        Conv2d(128, 512, kernel_size=3, stride=2, padding=1),  # Output: 55x28
+        Conv2d(512, 512, kernel_size=3, stride=1, padding=1, residual=True),  # Output: 55x28
+        Conv2d(512, 512, kernel_size=3, stride=1, padding=1, residual=True),  # Output: 55x28
 
-            Conv2d(512, 512, kernel_size=3, stride=2, padding=1),
-            Conv2d(512, 512, kernel_size=3, stride=1, padding=0),
-            Conv2d(512, 512, kernel_size=1, stride=1, padding=0),)
+        Conv2d(512, 512, kernel_size=3, stride=2, padding=1),  # Output: 28x14
+        Conv2d(512, 512, kernel_size=3, stride=2, padding=1),  # Output: 14x7
+        Conv2d(512, 512, kernel_size=3, stride=2, padding=1),  # Output: 7x4
+        Conv2d(512, 512, kernel_size=3, stride=2, padding=1),  # Output: 4x2
+        Conv2d(512, 512, kernel_size=3, stride=2, padding=1),  # Output: 2x1
+        Conv2d(512, 512, kernel_size=3, stride=2, padding=1),  # Output: 1x1
+    )
 
         self.audio_encoder = nn.Sequential(
-            Conv2d(1, 32, kernel_size=3, stride=1, padding=1),
-            Conv2d(32, 32, kernel_size=3, stride=1, padding=1, residual=True),
-            Conv2d(32, 32, kernel_size=3, stride=1, padding=1, residual=True),
+        Conv2d(1, 32, kernel_size=3, stride=1, padding=1),  # Input: 384x384 -> Output: 384x384
+        Conv2d(32, 32, kernel_size=3, stride=1, padding=1, residual=True),  # Output: 384x384
+        Conv2d(32, 32, kernel_size=3, stride=1, padding=1, residual=True),  # Output: 384x384
 
-            Conv2d(32, 64, kernel_size=3, stride=(3, 1), padding=1),
-            Conv2d(64, 64, kernel_size=3, stride=1, padding=1, residual=True),
-            Conv2d(64, 64, kernel_size=3, stride=1, padding=1, residual=True),
+        Conv2d(32, 64, kernel_size=3, stride=(3, 1), padding=1),  # Output: 128x384
+        Conv2d(64, 64, kernel_size=3, stride=1, padding=1, residual=True),  # Output: 128x384
+        Conv2d(64, 64, kernel_size=3, stride=1, padding=1, residual=True),  # Output: 128x384
 
-            Conv2d(64, 128, kernel_size=3, stride=3, padding=1),
-            Conv2d(128, 128, kernel_size=3, stride=1, padding=1, residual=True),
-            Conv2d(128, 128, kernel_size=3, stride=1, padding=1, residual=True),
+        Conv2d(64, 128, kernel_size=3, stride=3, padding=1),  # Output: 42x128
+        Conv2d(128, 128, kernel_size=3, stride=1, padding=1, residual=True),  # Output: 42x128
+        Conv2d(128, 128, kernel_size=3, stride=1, padding=1, residual=True),  # Output: 42x128
 
-            Conv2d(128, 256, kernel_size=3, stride=(3, 2), padding=1),
-            Conv2d(256, 256, kernel_size=3, stride=1, padding=1, residual=True),
-            Conv2d(256, 256, kernel_size=3, stride=1, padding=1, residual=True),
+        Conv2d(128, 256, kernel_size=3, stride=(3, 2), padding=1),  # Output: 14x64
+        Conv2d(256, 256, kernel_size=3, stride=1, padding=1, residual=True),  # Output: 14x64
+        Conv2d(256, 256, kernel_size=3, stride=1, padding=1, residual=True),  # Output: 14x64
 
-            Conv2d(256, 512, kernel_size=3, stride=1, padding=0),
-            Conv2d(512, 512, kernel_size=1, stride=1, padding=0),)
+        Conv2d(256, 512, kernel_size=3, stride=1, padding=0),  # Output: 12x62
+        Conv2d(512, 512, kernel_size=1, stride=1, padding=0),  # Output: 12x62
+    )
+        # print(summary(self.audio_encoder, (1, 80, 16)))
+
 
     def forward(self, audio_sequences, face_sequences): # audio_sequences := (B, dim, T)
         face_embedding = self.face_encoder(face_sequences)
