@@ -8,31 +8,31 @@ class SyncNet_color(nn.Module):
     def __init__(self):
         super(SyncNet_color, self).__init__()
 
-        self.face_encoder = nn.Sequential(
-            Conv2d(15, 32, kernel_size=7, stride=1, padding=3),  # 220, 440
+        self.face_encoder =  nn.Sequential(
+            Conv2d(15, 32, kernel_size=(7, 7), stride=1, padding=3),  # 220, 440 -> 220,440
             
-            Conv2d(32, 64, kernel_size=5, stride=(1, 2), padding=2),  # 220, 220
+            Conv2d(32, 64, kernel_size=5, stride=(1, 2), padding=2),  # 220, 440 -> 220, 220
             Conv2d(64, 64, kernel_size=5, stride=1, padding=2),
             
-            Conv2d(64, 128, kernel_size=5, stride=2, padding=2),  # 110, 110
+            Conv2d(64, 128, kernel_size=5, stride=2, padding=2),  # 220, 220 -> 110, 110
             Conv2d(128, 128, kernel_size=5, stride=1, padding=2),
             
-            Conv2d(128, 128, kernel_size=5, stride=2, padding=2),  # 55, 55
+            Conv2d(128, 128, kernel_size=5, stride=2, padding=2),  # 110, 110 -> 55, 55
             Conv2d(128, 128, kernel_size=5, stride=1, padding=2),
             
-            Conv2d(128, 256, kernel_size=5, stride=2, padding=2),  # 28, 28
+            Conv2d(128, 256, kernel_size=5, stride=2, padding=2),  # 55, 55 -> 28, 28
             Conv2d(256, 256, kernel_size=5, stride=1, padding=2),
             
-            Conv2d(256, 256, kernel_size=3, stride=3, padding=1),  # 10, 10
+            Conv2d(256, 256, kernel_size=3, stride=3, padding=1),  # 28, 28 -> 10,10
             Conv2d(256, 256, kernel_size=3, stride=1, padding=1),
             
-            Conv2d(256, 512, kernel_size=3, stride=2, padding=1),  # 5, 5
+            Conv2d(256, 512, kernel_size=3, stride=2, padding=1),  # 10, 10 -> 5, 5
             Conv2d(512, 512, kernel_size=3, stride=1, padding=1),
             
-            Conv2d(512, 512, kernel_size=3, stride=2, padding=1),  # 3, 3
+            Conv2d(512, 512, kernel_size=3, stride=2, padding=1),  # 5, 5 -> 3, 3
             Conv2d(512, 512, kernel_size=3, stride=1, padding=1),
             
-            Conv2d(512, 512, kernel_size=3, stride=1, padding=0),  # 1, 1
+            Conv2d(512, 512, kernel_size=3, stride=1, padding=0),  # 3, 3 -> 1, 1
             Conv2d(512, 512, kernel_size=1, stride=1, padding=0)
         )
 

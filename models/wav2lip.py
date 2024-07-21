@@ -131,8 +131,8 @@ class Wav2Lip(nn.Module):
             try:
                 x = torch.cat((x, feats[-1]), dim=1)
             except Exception as e:
-                print(x.size())
-                print(feats[-1].size())
+                print("x size:",x.size())
+                print("feats size:",feats[-1].size())
                 raise e
             
             feats.pop()
