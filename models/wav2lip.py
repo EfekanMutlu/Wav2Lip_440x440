@@ -9,38 +9,47 @@ class Wav2Lip(nn.Module):
     def __init__(self):
         super(Wav2Lip, self).__init__()
         self.face_encoder_blocks = nn.ModuleList([
-            nn.Sequential(Conv2d(6, 16, kernel_size=7, stride=1, padding=3)),  # 440,440
-            
-            nn.Sequential(Conv2d(16, 32, kernel_size=5, stride=2, padding=2),
-                          Conv2d(32, 32, kernel_size=3, stride=1, padding=1, residual=True)),  # 220,220
-            
-            nn.Sequential(Conv2d(32, 32, kernel_size=3, stride=2, padding=1),
-                          Conv2d(32, 32, kernel_size=3, stride=1, padding=1, residual=True),
-                          Conv2d(32, 32, kernel_size=3, stride=1, padding=1, residual=True)),  # 110,110
-            
-            nn.Sequential(Conv2d(32, 64, kernel_size=3, stride=2, padding=1),
-                          Conv2d(64, 64, kernel_size=3, stride=1, padding=1, residual=True),
-                          Conv2d(64, 64, kernel_size=3, stride=1, padding=1, residual=True),
-                          Conv2d(64, 64, kernel_size=3, stride=1, padding=1, residual=True)),  # 55,55
-            
-            nn.Sequential(Conv2d(64, 128, kernel_size=3, stride=2, padding=1),
-                          Conv2d(128, 128, kernel_size=3, stride=1, padding=1, residual=True),
-                          Conv2d(128, 128, kernel_size=3, stride=1, padding=1, residual=True)),  # 28,28
-            
-            nn.Sequential(Conv2d(128, 256, kernel_size=3, stride=2, padding=1),
-                          Conv2d(256, 256, kernel_size=3, stride=1, padding=1, residual=True),
-                          Conv2d(256, 256, kernel_size=3, stride=1, padding=1, residual=True)),  # 10,10
-            
-            nn.Sequential(Conv2d(256, 512, kernel_size=3, stride=2, padding=1),
-                          Conv2d(512, 512, kernel_size=3, stride=1, padding=1, residual=True)),  # 5,5
-            
-            nn.Sequential(Conv2d(512, 512, kernel_size=3, stride=1, padding=1),
-                          Conv2d(512, 512, kernel_size=3, stride=1, padding=1, residual=True)),  # 3,3
+            nn.Sequential(
+                Conv2d(6, 16, kernel_size=7, stride=1, padding=3)),  # 440x440
 
-            nn.Sequential(Conv2d(512, 512, kernel_size=3, stride=1, padding=0),
-                          Conv2d(512, 512, kernel_size=1, stride=1, padding=0)),  # 1,1
+            nn.Sequential(
+                Conv2d(16, 32, kernel_size=5, stride=2, padding=2),
+                Conv2d(32, 32, kernel_size=3, stride=1, padding=1, residual=True)),  # 220x220
+
+            nn.Sequential(
+                Conv2d(32, 32, kernel_size=3, stride=2, padding=1),
+                Conv2d(32, 32, kernel_size=3, stride=1, padding=1, residual=True),
+                Conv2d(32, 32, kernel_size=3, stride=1, padding=1, residual=True)),  # 110x110
+
+            nn.Sequential(
+                Conv2d(32, 64, kernel_size=3, stride=2, padding=1),
+                Conv2d(64, 64, kernel_size=3, stride=1, padding=1, residual=True),
+                Conv2d(64, 64, kernel_size=3, stride=1, padding=1, residual=True),
+                Conv2d(64, 64, kernel_size=3, stride=1, padding=1, residual=True)),  # 55x55
+
+            nn.Sequential(
+                Conv2d(64, 128, kernel_size=3, stride=2, padding=1),
+                Conv2d(128, 128, kernel_size=3, stride=1, padding=1, residual=True),
+                Conv2d(128, 128, kernel_size=3, stride=1, padding=1, residual=True)),  # 28x28
+
+            nn.Sequential(
+                Conv2d(128, 256, kernel_size=3, stride=3, padding=1),
+                Conv2d(256, 256, kernel_size=3, stride=1, padding=1, residual=True),
+                Conv2d(256, 256, kernel_size=3, stride=1, padding=1, residual=True)),  # 10x10
+
+            nn.Sequential(
+                Conv2d(256, 512, kernel_size=3, stride=2, padding=1),
+                Conv2d(512, 512, kernel_size=3, stride=1, padding=1, residual=True)),  # 5x5
+
+            nn.Sequential(
+                Conv2d(512, 512, kernel_size=3, stride=2, padding=1),
+                Conv2d(512, 512, kernel_size=3, stride=1, padding=1, residual=True)),  # 3x3
+
+            nn.Sequential(
+                Conv2d(512, 512, kernel_size=1, stride=3, padding=0),
+                Conv2d(512, 512, kernel_size=1, stride=1, padding=0)),  # 1x1
         ])
-
+        
         self.audio_encoder = nn.Sequential(
             Conv2d(1, 32, kernel_size=3, stride=1, padding=1),
             Conv2d(32, 32, kernel_size=3, stride=1, padding=1, residual=True),
@@ -109,6 +118,7 @@ class Wav2Lip(nn.Module):
     def forward(self, audio_sequences, face_sequences):
         # audio_sequences = (B, T, 1, 80, 16)
         B = audio_sequences.size(0)
+        print("audio_sequences size:",audio_sequences.size())
 
         input_dim_size = len(face_sequences.size())
         if input_dim_size > 4:
@@ -119,15 +129,20 @@ class Wav2Lip(nn.Module):
 
         feats = []
         x = face_sequences
-        
+        print("face_sequences size:",x.size())
         for f in self.face_encoder_blocks:
             x = f(x)
+            print("x=f(x) size for encoder:",x.size())
             feats.append(x)
 
         x = audio_embedding
+        print("audio_embedding size:",x.size())
+        print("len feats",len(feats))
+        print("feats before loop size:",feats[-1].size())
         
         for f in self.face_decoder_blocks:
             x = f(x)
+            print("x=f(x) size for decoder:",x.size())
             try:
                 x = torch.cat((x, feats[-1]), dim=1)
             except Exception as e:
