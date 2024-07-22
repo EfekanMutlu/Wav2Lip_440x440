@@ -118,7 +118,7 @@ class Wav2Lip(nn.Module):
     def forward(self, audio_sequences, face_sequences):
         # audio_sequences = (B, T, 1, 80, 16)
         B = audio_sequences.size(0)
-        print("audio_sequences size:",audio_sequences.size())
+        #print("audio_sequences size:",audio_sequences.size())
 
         input_dim_size = len(face_sequences.size())
         if input_dim_size > 4:
@@ -129,25 +129,25 @@ class Wav2Lip(nn.Module):
 
         feats = []
         x = face_sequences
-        print("face_sequences size:",x.size())
+        #print("face_sequences size:",x.size())
         for f in self.face_encoder_blocks:
             x = f(x)
-            print("x=f(x) size for encoder:",x.size())
+            #print("x=f(x) size for encoder:",x.size())
             feats.append(x)
 
         x = audio_embedding
-        print("audio_embedding size:",x.size())
-        print("len feats",len(feats))
-        print("feats before loop size:",feats[-1].size())
+        #print("audio_embedding size:",x.size())
+        #print("len feats",len(feats))
+        #print("feats before loop size:",feats[-1].size())
         
         for f in self.face_decoder_blocks:
             x = f(x)
-            print("x=f(x) size for decoder:",x.size())
+            #print("x=f(x) size for decoder:",x.size())
             try:
                 x = torch.cat((x, feats[-1]), dim=1)
             except Exception as e:
-                print("x size:",x.size())
-                print("feats size:",feats[-1].size())
+                #print("x size:",x.size())
+                #print("feats size:",feats[-1].size())
                 raise e
             
             feats.pop()

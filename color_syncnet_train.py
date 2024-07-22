@@ -1,6 +1,6 @@
 from os.path import dirname, join, basename, isfile
 from tqdm import tqdm
-
+import wandb
 from models import SyncNet_color as SyncNet
 import audio
 
@@ -74,7 +74,7 @@ class Dataset(object):
 
             img_names = list(glob(join(vidname, '*.jpg')))
             if len(img_names) <= 3 * syncnet_T:
-              print("syncht hatası")
+              #print("syncnet_T error")
               continue
             img_name = random.choice(img_names)
             wrong_img_name = random.choice(img_names)
@@ -90,7 +90,7 @@ class Dataset(object):
 
             window_fnames = self.get_window(chosen)
             if window_fnames is None:
-              print("window frame none")
+              #print("window frame none error")
               continue
 
             window = []
@@ -104,7 +104,7 @@ class Dataset(object):
                     img = cv2.resize(img, (hparams.img_size, hparams.img_size))
                 except Exception as e:
                     all_read = False
-                    print("break")
+                    #print("break")
                     break
 
                 window.append(img)
@@ -117,7 +117,7 @@ class Dataset(object):
 
                 orig_mel = audio.melspectrogram(wav).T
             except Exception as e:
-              print("audio wav problem")
+              #print("audio wav problem")
               continue
 
             mel = self.crop_audio_window(orig_mel.copy(), img_name)
@@ -142,14 +142,22 @@ def cosine_loss(a, v, y):
 
     return loss
 
+def calculate_accuracy(a, v, y):
+    correct = torch.sum(torch.argmax(a, dim=1) == torch.argmax(y, dim=1)).item()
+    total = y.size(0)
+    accuracy = correct / total
+    return accuracy
+
+
 def train(device, model, train_data_loader, test_data_loader, optimizer,
           checkpoint_dir=None, checkpoint_interval=None, nepochs=None):
 
     global global_step, global_epoch
     resumed_step = global_step
-    
+
     while global_epoch < nepochs:
         running_loss = 0.
+        running_accuracy = 0.
         prog_bar = tqdm(enumerate(train_data_loader))
         for step, (x, mel, y) in prog_bar:
             model.train()
@@ -157,12 +165,10 @@ def train(device, model, train_data_loader, test_data_loader, optimizer,
 
             # Transform data to CUDA device
             x = x.to(device)
-
             mel = mel.to(device)
-
-            a, v = model(mel, x)
             y = y.to(device)
 
+            a, v = model(mel, x)
             loss = cosine_loss(a, v, y)
             loss.backward()
             optimizer.step()
@@ -170,23 +176,35 @@ def train(device, model, train_data_loader, test_data_loader, optimizer,
             global_step += 1
             cur_session_steps = global_step - resumed_step
             running_loss += loss.item()
+            accuracy = calculate_accuracy(a, v, y)
+            running_accuracy += accuracy
+
+            # Log the training loss and accuracy to wandb
+            wandb.log({
+                "train_loss": loss.item(), 
+                "train_accuracy": accuracy,
+                "step": global_step,
+                "epoch": global_epoch
+            })
 
             if global_step == 1 or global_step % checkpoint_interval == 0:
-                save_checkpoint(
-                    model, optimizer, global_step, checkpoint_dir, global_epoch)
+                save_checkpoint(model, optimizer, global_step, checkpoint_dir, global_epoch)
 
             if global_step % hparams.syncnet_eval_interval == 0:
                 with torch.no_grad():
-                    eval_model(test_data_loader, global_step, device, model, checkpoint_dir)
+                    eval_loss = eval_model(test_data_loader, global_step, device, model, checkpoint_dir)
+                    # Log the evaluation loss to wandb
+                   
 
             prog_bar.set_description('Loss: {}'.format(running_loss / (step + 1)))
 
         global_epoch += 1
 
 def eval_model(test_data_loader, global_step, device, model, checkpoint_dir):
-    eval_steps = 1400
+    eval_steps = 100
     print('Evaluating for {} steps'.format(eval_steps))
     losses = []
+    #accuracies = []
     while 1:
         for step, (x, mel, y) in enumerate(test_data_loader):
 
@@ -194,21 +212,27 @@ def eval_model(test_data_loader, global_step, device, model, checkpoint_dir):
 
             # Transform data to CUDA device
             x = x.to(device)
-
             mel = mel.to(device)
-
-            a, v = model(mel, x)
             y = y.to(device)
 
+            a, v = model(mel, x)
             loss = cosine_loss(a, v, y)
             losses.append(loss.item())
 
             if step > eval_steps: break
 
         averaged_loss = sum(losses) / len(losses)
-        print(averaged_loss)
+        #averaged_accuracy = sum(accuracies) / len(accuracies)
+        #print(averaged_loss)
+        
+        # Log the evaluation loss to wandb
+        wandb.log({
+            "eval_loss": averaged_loss
+            
+        })
 
-        return
+
+        return averaged_loss
 
 def save_checkpoint(model, optimizer, step, checkpoint_dir, epoch):
 
@@ -253,6 +277,45 @@ if __name__ == "__main__":
     checkpoint_path = args.checkpoint_path
 
     if not os.path.exists(checkpoint_dir): os.mkdir(checkpoint_dir)
+
+    wandb.login()
+    wandb.init(project="Wav2Lip Training",config = {
+    "num_mels": 80,
+    "rescale": True,
+    "rescaling_max": 0.9,
+    "use_lws": False,
+    "n_fft": 800,
+    "hop_size": 200,
+    "win_size": 800,
+    "sample_rate": 16000,
+    "frame_shift_ms": None,
+    "signal_normalization": True,
+    "allow_clipping_in_normalization": True,
+    "symmetric_mels": True,
+    "max_abs_value": 4.0,
+    "preemphasize": True,
+    "preemphasis": 0.97,
+    "min_level_db": -100,
+    "ref_level_db": 20,
+    "fmin": 55,
+    "fmax": 7600,
+    "img_size": 96,
+    "fps": 25,
+    "batch_size": 16,
+    "initial_learning_rate": 1e-4,
+    "nepochs": 200,
+    "num_workers": 4,
+    "checkpoint_interval": 100,
+    "eval_interval":100,
+    "save_optimizer_state": True,
+    "syncnet_wt": 0.0,
+    "syncnet_batch_size": 64,
+    "syncnet_lr": 1e-4,
+    "syncnet_eval_interval": 100,
+    "syncnet_checkpoint_interval": 100,
+    "disc_wt": 0.07,
+    "disc_initial_learning_rate": 1e-4
+})
 
     # Dataset and Dataloader setup
     train_dataset = Dataset('train')
