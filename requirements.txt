@@ -12,4 +12,3 @@ gradio
 yt_dlp 
 ffmpeg-python 
 librosa
-git+https://github.com/sberbank-ai/Real-ESRGAN.git
