@@ -1,5 +1,5 @@
 librosa==0.7.0
-numpy==1.17.1
+numpy
 opencv-contrib-python>=4.2.0.34
 opencv-python==4.1.0.25
 torch==1.1.0
@@ -7,3 +7,9 @@ torchvision==0.3.0
 tqdm==4.45.0
 numba==0.48
 wandb
+onnx
+gradio
+yt_dlp 
+ffmpeg-python 
+librosa
+git+https://github.com/sberbank-ai/Real-ESRGAN.git
