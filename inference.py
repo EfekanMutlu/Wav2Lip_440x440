@@ -47,7 +47,7 @@ parser.add_argument('--rotate', default=False, action='store_true',
 					help='Sometimes videos taken from a phone can be flipped 90deg. If true, will flip video right by 90deg.'
 					'Use if you get a flipped result, despite feeding a normal looking video')
 
-parser.add_argument('--nosmooth', default=True, action='store_true',
+parser.add_argument('--nosmooth', default=False, action='store_true',
 					help='Prevent smoothing face detections over a short temporal window')
 
 args = parser.parse_args()
